@@ -1,0 +1,55 @@
+grammar Expression ;
+type [Function<Double, Double>] ;
+@header [
+package parser.expression;
+import java.util.function.Function;
+]
+
+start
+    | t ee                       [a -> ee.getValue().apply(t.getValue().apply(0D))]
+    ;
+
+ee
+    |                            [a -> a]
+    | ADD t ee                   [a -> ee.getValue().apply(a + t.getValue().apply(0D))]
+    | SUB t ee                   [a -> a - ee.getValue().apply(t.getValue().apply(0D))]
+    ;
+
+t
+    | r tt                       [a -> tt.getValue().apply(r.getValue().apply(0D))]
+    ;
+
+tt
+    |                            [a -> a]
+    | MUL r tt                   [a -> tt.getValue().apply(a * r.getValue().apply(1D))]
+    | DIV r tt                   [a -> tt.getValue().apply(a / r.getValue().apply(1D))]
+    ;
+
+r
+    | f rr                       [a -> rr.getValue().apply(f.getValue().apply(0D))]
+    ;
+
+rr
+    |                            [a -> a]
+    | POW f rr                   [a -> Math.pow(a, rr.getValue().apply(f.getValue().apply(0D)))]
+    ;
+
+f
+    | NUMBER                     [a -> NUMBER.getValue().apply(0D)]
+    ;
+
+NUMBER : ~[0-9]+\\.[0-9]+~       [wrapDouble()] ;
+POW : ~\\*\\*~ ;
+MUL : ~\\*~ ;
+DIV : ~/~ ;
+ADD : ~\\+~ ;
+SUB : ~-~ ;
+WS : ~[\t\n\r ]+~ -> skip ;
+EPS : ~eps~                         [a -> a] ;
+
+~
+    private Function<Double, Double> wrapDouble() {
+        double val = Double.parseDouble(lex.curValue());
+        return a -> val;
+    }
+~

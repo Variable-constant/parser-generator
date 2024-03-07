@@ -1,0 +1,132 @@
+grammar Lab3 ;
+type [String] ;
+@header [
+package parser.lab3;
+import java.util.stream.Collectors;
+import java.util.Arrays;
+]
+
+start
+    | body                          [body.getValue()]
+    ;
+
+body
+    | funcs exec                    [funcs.getValue() + "\n\n int main() {\n" + exec.getValue() + "\n}"]
+    ;
+
+funcs
+    |                               [""]
+    | func funcs                    [func.getValue() + "\n\n" + funcs.getValue()]
+    ;
+
+func
+    | FUNC func_name OP_BR VAR CL_BR CURLY_OP_BR exec CURLY_CL_BR ["int " + func_name.getValue() + "(" + "int " + VAR.getValue() + "){\n" + exec.getValue() + "\n}"]
+    ;
+
+func_name
+    | VAR                           [VAR.getValue()]
+    ;
+
+exec_unit
+    | wh                            [wh.getValue()]
+    | fi                            [fi.getValue()]
+    | assigning                     [assigning.getValue() + ";"]
+    | declaration                   [declaration.getValue() + ";"]
+    | print                         [print.getValue() + ";"]
+    | func_inv                      [func_inv.getValue() + ";"]
+    ;
+
+exec
+    |                               [""]
+    | exec_unit                     [exec_unit.getValue()]
+    | exec_unit exec                [exec_unit.getValue() + "\n" + exec.getValue()]
+    ;
+
+wh
+    | WHILE expr CURLY_OP_BR exec CURLY_CL_BR   ["while " + expr + "{\n" + exec.getValue() + "\n}"]
+    ;
+
+fi
+    | IF CURLY_OP_BR exec CURLY_CL_BR else_block      ["if{\n" + exec.getValue() + "\n}" + else_block.getValue()]
+    ;
+
+else_block
+    |                                       [""]
+    | ELSE CURLY_OP_BR exec CURLY_CL_BR     ["else{\n" + exec.getValue() + "\n}"]
+    ;
+
+assigning
+    | VAR ASSIGNMENT expr            [String.format("%s = %s", VAR.getValue(), expr.getValue())]
+    ;
+
+declaration
+    | VAR_DEC VAR ASSIGNMENT expr            [String.format("int %s = %s", VAR.getValue(), expr.getValue())]
+    ;
+
+print
+    | PRINT expr                    [String.format("printf(\"%%d\\n\", %s)", expr.getValue())]
+    ;
+
+expr
+    | value r_expr                  [String.format("(%s %s)", value.getValue(), r_expr.getValue())]
+    ;
+
+r_expr
+    |                               [""]
+    | op value                      [op.getValue() + value.getValue()]
+    ;
+
+func_inv
+    | INV VAR OP_BR expr CL_BR      [VAR.getValue() + "(" + expr.getValue() + ")"]
+    ;
+
+value
+    | NUM                           [NUM.getValue()]
+    | VAR                           [VAR.getValue()]
+    | func_inv                      [func_inv.getValue()]
+    ;
+
+ret
+    | RETURN expr                   [expr.getValue()]
+    ;
+
+op
+    | ADD                           ["+"]
+    | SUB                           ["-"]
+    | MUL                           ["*"]
+    | DIV                           ["/"]
+    | LESS                          ["<"]
+    | GREATER                       [">"]
+    | AND                           ["&&"]
+    | OR                            ["||"]
+    | XOR                           ["^^"]
+    | EQUALS                        ["=="]
+    ;
+
+INV : ~inv~ ;
+FUNC : ~func~ ;
+OP_BR : ~\\(~ ;
+CL_BR : ~\\)~ ;
+CURLY_OP_BR : ~\\{~ ;
+CURLY_CL_BR : ~\\}~ ;
+VAR_DEC : ~variable~ ;
+RETURN : ~return~ ;
+ADD : ~\\+~ ;
+SUB : ~-~ ;
+MUL : ~\\*~ ;
+DIV : ~/~ ;
+LESS : ~<~ ;
+GREATER : ~>~ ;
+AND : ~and~ ;
+OR : ~or~ ;
+XOR : ~xor~ ;
+ASSIGNMENT : ~=~ ;
+EQUALS : ~==~ ;
+PRINT : ~print~ ;
+IF : ~if~ ;
+ELSE : ~else~ ;
+WHILE : ~while~ ;
+WS : ~[\t\r\n ]+~ -> skip ;
+NUM : ~[0-9]+~                      [%s] ;
+VAR : ~[a-zA-Z]+~                   [%s] ;
+EPS : ~eps~                         [""] ;

@@ -1,0 +1,28 @@
+grammar Lab2 ;
+@header [
+package parser.lab2;
+]
+
+start
+    | VAR v COLON t SEMICOLON
+    ;
+
+v
+    | NAME
+    ;
+
+t
+    | ARRAY LT t GT
+    | NAME
+    ;
+
+
+VAR : ~var~ ;
+ARRAY : ~Array~ ;
+SEMICOLON : ~;~ ;
+COLON : ~:~ ;
+COMMA : ~,~ ;
+GT : ~>~ ;
+LT : ~<~ ;
+NAME : ~[a-zA-Z]+~ ;
+WS : ~[\t\n\r ]+~ -> skip ;
